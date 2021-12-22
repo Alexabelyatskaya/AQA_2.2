@@ -1,29 +1,36 @@
 package ru.netology.test;
 
-import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.Configuration;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.*;
+import static org.openqa.selenium.Keys.BACK_SPACE;
 
 public class CardTest {
-    private Selenide p;
 
     @Test
-    void shouldRegisterByAccountNumber() throws InterruptedException {
+    void shouldRegisterByAccountNumber() {
         open("http://localhost:9999");
 
+        Configuration.holdBrowserOpen = true;
+
         $("[placeholder='Город']").setValue("Майкоп");
-        $("[placeholder='Дата встречи']").setValue("15.01.2022");
+        $("[placeholder='Дата встречи']").doubleClick().sendKeys(BACK_SPACE);
+        String planningDate = generateDate(3);
+        $("[data-test-id='date'] input").setValue(planningDate);
         $("[name='name']").setValue("Иванова Татьяна");
         $("[name='phone']").setValue("+78008008080");
         $("[data-test-id='agreement']").click();
         $$(".button__text").find(exactText("Забронировать")).click();
-        System.out.println("1");
-        $(withText("Успешно!")).shouldBe(visible, Duration.ofSeconds(15));
+        $(".notification__content").shouldHave(exactText("Встреча успешно забронирована на " + planningDate), Duration.ofSeconds(15));
+    }
+
+    public static String generateDate(int days) {
+        return LocalDate.now().plusDays(days).format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
     }
 }
